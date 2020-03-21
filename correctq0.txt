@@ -1,0 +1,29 @@
+int ran = 0;
+    for(;;){
+      sti();
+      acquire(&ptable.lock);
+      
+      for(int i = 0; i<NPROC; i++){
+        p = dequeue(&queue0);
+        if(p == 0){
+          cprintf("null proc in q\n");
+          enqueue(&queue0, p);
+          continue;
+        }
+        if(p->state != RUNNABLE){
+          enqueue(&queue0, p);
+          continue;
+        }
+        ran = 1;
+        proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
+        swtch(&cpu->scheduler, proc->context);
+        switchkvm();
+        proc = 0;
+        enqueue(&queue0, p);
+      }
+      release(&ptable.lock);
+      if(ran == 0) halt();
+    }
+  }
